@@ -1,0 +1,11 @@
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+.flaskenv
+Jesus y edgar
+
