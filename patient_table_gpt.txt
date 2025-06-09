@@ -1,0 +1,169 @@
+
+
+# Table: `gnuhealth_patient`
+
+This table stores **comprehensive patient records** in GNU Health, including medical, lifestyle, socioeconomic, and demographic information.
+
+---
+
+## Primary Key
+
+* `id` (`INTEGER`): Auto-incrementing unique identifier for the patient.
+
+---
+
+## Audit Fields
+
+* `create_date` (`TIMESTAMP(6)`): Timestamp of record creation.
+* `write_date` (`TIMESTAMP(6)`): Timestamp of last record update.
+* `create_uid` (`INTEGER`): ID of the user who created the record.
+* `write_uid` (`INTEGER`): ID of the user who last updated the record.
+
+---
+
+## General and Administrative Information
+
+* `name` (`INTEGER`, `UNIQUE`): Foreign key to `party_party(id)` (represents the person).
+* `family` (`INTEGER`): Foreign key to `gnuhealth_family(id)` (family unit).
+* `primary_care_doctor` (`INTEGER`): Foreign key to `gnuhealth_healthprofessional(id)`.
+* `current_address` (`INTEGER`): Foreign key to `party_address(id)`.
+* `dob` (`TIMESTAMP(0)`): Date of death (misnamed field; likely intended as “Date of Birth”).
+* `cod` (`INTEGER`): Foreign key to `gnuhealth_pathology(id)` for cause of death.
+* `deceased` (`BOOLEAN`, default `FALSE`): Indicates if the patient is deceased.
+* `active` (`BOOLEAN`, default `FALSE`): Indicates if the patient record is active.
+* `general_info` (`TEXT`): General notes about the patient.
+* `critical_info` (`TEXT`): Critical medical information (not automatically summarized).
+
+---
+
+## Socioeconomic Information
+
+* Boolean flags indicating social risk factors:
+
+  * `works_at_home`, `prison_current`, `prison_past`, `domestic_violence`, `hostile_area`, `sexual_abuse`, `drug_addiction`, `school_withdrawal`, `single_parent`, `working_children`, `teenage_pregnancy`, `relative_in_prison`
+* `income` (`VARCHAR`): Reported income level.
+* `ses_notes` (`TEXT`): Additional socioeconomic context.
+
+---
+
+## Gynecological and Obstetric History
+
+* `fertile`, `menopausal` (`BOOLEAN`): Reproductive status.
+* `menopause`, `menarche` (`INTEGER`): Age of menopause/menarche onset.
+* Pregnancy history:
+
+  * `gravida`, `full_term`, `premature`, `abortions`, `stillbirths` (`INTEGER`)
+* Screening:
+
+  * `pap_test`, `colposcopy`, `mammography`, `breast_self_examination` (`BOOLEAN`)
+  * `pap_test_last`, `colposcopy_last`, `mammography_last` (`DATE`)
+
+---
+
+## Lifestyle and Habits
+
+### Tobacco
+
+* `smoking`, `ex_smoker`, `second_hand_smoker` (`BOOLEAN`)
+* `smoking_number`, `age_start_smoking`, `age_quit_smoking` (`INTEGER`)
+
+### Alcohol
+
+* `alcohol`, `ex_alcoholic` (`BOOLEAN`)
+* `age_start_drinking`, `age_quit_drinking`, `alcohol_beer_number`, `alcohol_wine_number`, `alcohol_liquor_number` (`INTEGER`)
+
+### Drugs
+
+* `drug_usage`, `ex_drug_addict`, `drug_iv` (`BOOLEAN`)
+* `age_start_drugs`, `age_quit_drugs` (`INTEGER`)
+
+### Other
+
+* `exercise`, `exercise_minutes_day` (`BOOLEAN`, `INTEGER`)
+* `sleep_hours` (`INTEGER`), `sleep_during_daytime` (`BOOLEAN`)
+* `lifestyle_info` (`TEXT`)
+* `hours_outside` (`INTEGER`): Time spent outdoors
+
+---
+
+## Diet and Nutrition
+
+* `diet` (`BOOLEAN`): Indicates if the patient is on a diet.
+* `diet_info` (`VARCHAR`): Description of the diet.
+* `number_of_meals` (`INTEGER`): Meals per day.
+* `eats_alone`, `soft_drinks`, `coffee`, `salt` (`BOOLEAN`)
+* `coffee_cups` (`INTEGER`)
+* `diet_belief` (`INTEGER`): Foreign key to `gnuhealth_diet_belief(id)`
+* `vegetarian_type` (`INTEGER`): Foreign key to `gnuhealth_vegetarian_types(id)`
+
+---
+
+## Sexual Health
+
+* `first_sexual_encounter`, `sexual_partners_number` (`INTEGER`)
+* `sexual_partners`, `sexual_preferences`, `sexual_practices` (`VARCHAR`)
+* `sex_oral`, `sex_anal` (`VARCHAR`)
+* `sex_with_prostitutes`, `prostitute` (`BOOLEAN`)
+* `anticonceptive` (`VARCHAR`)
+* `sexuality_info` (`TEXT`)
+
+---
+
+## Safety and Other Information
+
+* `home_safety`, `car_seat_belt`, `car_child_safety`, `car_revision`, `motorcycle_rider`, `helmet`, `traffic_laws` (`BOOLEAN`)
+* `disability`, `amputee` (`BOOLEAN`)
+* `amputee_since` (`DATE`)
+* `current_insurance` (`INTEGER`): Foreign key to `gnuhealth_insurance(id)`
+* `blood_type`, `rh`, `biological_sex` (`VARCHAR`)
+
+---
+
+## Uncategorized / Legacy Fields
+
+* `hb` (`VARCHAR`)
+* `uxo` (`BOOLEAN`): Possible exposure to unexploded ordnance
+* `crit_allergic`, `crit_cancer`, `crit_cardio`, `crit_cognitive`, `crit_dbt`, `crit_hbp`, `crit_immuno`, `crit_nutrition`, `crit_social` (`BOOLEAN`): Critical health flags
+
+---
+
+## Foreign Key Constraints
+
+```sql
+CONSTRAINT fk_patient_party FOREIGN KEY (name)
+  REFERENCES party_party(id) ON DELETE RESTRICT ON UPDATE NO ACTION,
+
+CONSTRAINT fk_patient_family FOREIGN KEY (family)
+  REFERENCES gnuhealth_family(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_patient_doctor FOREIGN KEY (primary_care_doctor)
+  REFERENCES gnuhealth_healthprofessional(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_patient_address FOREIGN KEY (current_address)
+  REFERENCES party_address(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_patient_insurance FOREIGN KEY (current_insurance)
+  REFERENCES gnuhealth_insurance(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_patient_cod FOREIGN KEY (cod)
+  REFERENCES gnuhealth_pathology(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_patient_diet_belief FOREIGN KEY (diet_belief)
+  REFERENCES gnuhealth_diet_belief(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_patient_veg_type FOREIGN KEY (vegetarian_type)
+  REFERENCES gnuhealth_vegetarian_types(id) ON DELETE SET NULL ON UPDATE NO ACTION
+```
+
+---
+
+## Use Case Summary
+
+* Core patient table in GNU Health EHR.
+* Captures complete clinical, lifestyle, reproductive, and safety profiles.
+* Integrates with demographic, professional, and insurance records.
+* Designed for longitudinal tracking of health and social determinants.
+* Supports advanced querying for medical decision support and research.
+
+---
+

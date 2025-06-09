@@ -1,0 +1,91 @@
+
+
+# Table: `gnuhealth_patient_pregnancy`
+
+This table stores **pregnancy records** for patients in the GNU Health system. It includes clinical information and metadata for each pregnancy entry.
+
+---
+
+## Primary Key
+
+* `id` (`INTEGER`): Auto-incrementing unique identifier for each pregnancy record.
+
+---
+
+## Audit Fields
+
+* `create_date` (`TIMESTAMP(6)`): Date and time when the record was created.
+* `write_date` (`TIMESTAMP(6)`): Date and time when the record was last updated.
+* `create_uid` (`INTEGER`): ID of the user who created the record.
+* `write_uid` (`INTEGER`): ID of the user who last updated the record.
+
+---
+
+## Clinical Fields
+
+* `gravida` (`INTEGER`): Total number of times the patient has been pregnant.
+* `fetuses` (`INTEGER`): Number of fetuses in this specific pregnancy.
+* `lmp` (`DATE`): Last Menstrual Period, used for calculating gestational age.
+* `pregnancy_end_result` (`VARCHAR`): Outcome of the pregnancy (e.g., live birth, miscarriage).
+* `pregnancy_end_date` (`TIMESTAMP(0)`): Date when the pregnancy ended.
+* `iugr` (`VARCHAR`): Indicates whether Intrauterine Growth Restriction (IUGR) is present.
+* `monozygotic` (`BOOLEAN`, default `FALSE`): True if the pregnancy involves monozygotic (identical) twins.
+* `current_pregnancy` (`BOOLEAN`, default `FALSE`): True if this is the patient's current pregnancy.
+* `warning` (`BOOLEAN`, default `FALSE`): True if there are complications or warnings related to the pregnancy.
+* `reverse_weeks` (`INTEGER`): Tracks gestational weeks in reverse (possibly for countdown).
+* `bba` (`BOOLEAN`, default `FALSE`): True if the birth occurred before arrival at a healthcare facility.
+* `home_birth` (`BOOLEAN`, default `FALSE`): True if the birth occurred at home.
+* `reverse` (`BOOLEAN`, default `FALSE`): A flag for internal logic (purpose not fully defined).
+
+---
+
+## Relationship Fields
+
+* `name` (`INTEGER`): Foreign key to `gnuhealth_patient(id)`, identifies the patient.
+* `healthprof` (`INTEGER`): Foreign key to `gnuhealth_healthprofessional(id)`, identifies the health professional.
+* `institution` (`INTEGER`): Foreign key to `gnuhealth_institution(id)`, identifies the healthcare institution.
+
+---
+
+## Foreign Key Constraints
+
+```sql
+CONSTRAINT fk_pregnancy_patient FOREIGN KEY (name)
+  REFERENCES gnuhealth_patient(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_pregnancy_healthprof FOREIGN KEY (healthprof)
+  REFERENCES gnuhealth_healthprofessional(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+
+CONSTRAINT fk_pregnancy_institution FOREIGN KEY (institution)
+  REFERENCES gnuhealth_institution(id) ON DELETE SET NULL ON UPDATE NO ACTION
+```
+
+---
+
+## Example Query: Retrieve Names of Pregnant Patients
+
+Returns patient names by joining pregnancy records with patient and party data.
+
+```sql
+SELECT party_party.name
+FROM gnuhealth_patient_pregnancy
+INNER JOIN gnuhealth_patient
+  ON gnuhealth_patient.id = gnuhealth_patient_pregnancy.name
+INNER JOIN party_party
+  ON party_party.id = gnuhealth_patient.name;
+```
+
+* `party_party.name` provides the readable name of each patient.
+* `gnuhealth_patient.name` links the patient to their corresponding party entity.
+
+---
+
+## Use Case Summary
+
+* Tracks individual pregnancy details including clinical flags and pregnancy outcomes.
+* Supports linking to healthcare professionals and institutions.
+* Enables queries on patient status, gestational data, and metadata fields.
+* Boolean flags support conditional logic and health alert workflows.
+
+---
+

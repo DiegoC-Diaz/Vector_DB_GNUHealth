@@ -1,0 +1,62 @@
+Here's the **Markdown version** of the `gnuhealth_pathology` table, structured and annotated for clarity and optimized for embedding in a vector database or knowledge base used with a language model like Gemma 4B:
+
+---
+
+# Table: `gnuhealth_pathology`
+
+This table stores **disease and disorder records** in the GNU Health system, including classification, molecular data, and metadata for pathology entries.
+
+---
+
+## Primary Key
+
+* `id` (`INTEGER`): Auto-incrementing unique identifier for the pathology record.
+
+---
+
+## Audit Fields
+
+* `create_date` (`TIMESTAMP(6)`): Date and time when the record was created.
+* `write_date` (`TIMESTAMP(6)`): Date and time when the record was last updated.
+* `create_uid` (`INTEGER`): ID of the user who created the record.
+* `write_uid` (`INTEGER`): ID of the user who last updated the record.
+
+---
+
+## Pathology Information Fields
+
+* `category` (`INTEGER`): Foreign key to `gnuhealth_pathology_category(id)`, identifying the pathology’s classification category.
+* `code` (`VARCHAR`): Internal or external classification code for the pathology.
+* `name` (`VARCHAR`): Common or standardized name of the pathology.
+* `info` (`TEXT`): Supplementary information or description about the pathology.
+* `protein` (`VARCHAR`): Specific protein involved in the pathology.
+* `gene` (`VARCHAR`): Specific gene associated with the pathology.
+* `chromosome` (`VARCHAR`): Chromosome affected by the pathology.
+* `active` (`BOOLEAN`, default `FALSE`): True if the pathology record is currently active.
+* `uri` (`VARCHAR`): URI linking to external data sources or further information (e.g. medical databases, publications).
+
+---
+
+## Foreign Key Constraints
+
+```sql
+CONSTRAINT fk_pathology_category FOREIGN KEY (category)
+  REFERENCES gnuhealth_pathology_category(id)
+  ON DELETE SET NULL ON UPDATE NO ACTION
+```
+
+* Ensures that each pathology is associated with a valid category.
+* Allows for soft deletion of categories by setting related `category` values to NULL.
+
+---
+
+## Use Case Summary
+
+* Enables classification and tracking of diseases by name, gene, protein, and chromosome.
+* Supports external linking via `uri` for research or medical references.
+* Designed for integration with broader medical classification systems.
+* Useful for clinicians, researchers, and bioinformatic systems tracking genetic or molecular causes of disease.
+
+---
+
+Let me know if you’d like the `gnuhealth_pathology_category` table formatted next or want chunked sections for embedding in vector indexes.
