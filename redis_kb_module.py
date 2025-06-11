@@ -2,12 +2,12 @@ from langchain_ollama import OllamaEmbeddings
 import os
 import redis
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from queries import retriever
+from redis_query_module import retriever
 from langchain_redis import RedisConfig, RedisVectorStore
 import re
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from glob import glob
-
+import re
 
 
 
@@ -102,7 +102,7 @@ def split_doc_content(doc_content):
 
 def store_procedure():
     if test_redis():
-        vec_store=create_vector_store()
+        vec_store = create_vector_store()
 
     kbs, metadata = load_docs()
 
@@ -110,6 +110,7 @@ def store_procedure():
         chunks = split_doc_content(content)
         metas = [{"category": metadata[i]["category"]} for _ in chunks]
         vec_store.add_texts(chunks, metas)
+
 
 
 
@@ -124,28 +125,42 @@ def direct_query(text_input):
         print(f"Metadata: {doc.metadata}")
         print()
     
-def main():
-    #store_procedure()
-    vector_store=create_vector_store()
+def load_kb_to_redis():
+    store_procedure()
+
  
-    input_text="listame el numeor de embarazos de este mes"
-    direct_query(input_text)
-    ret=retriever(input_text,vector_store)
-    context=""
-    for doc in ret:
-        context+=str(doc)+"\n"
 
-    # 'w' mode means "write" mode. It will create the file if it doesn't exist,
-    # or overwrite its content if it does.
-    with open("out.txr", 'w', encoding='utf-8') as file:
-        file.write(context)
-        print(f"Successfully wrote to out.txt")
+def load_few_shots():
+    with open("Reports-TableDocumentation/ReportsExample.md", "r", encoding="utf-8") as f:
+        return f.read()
 
-    print(ret)
+def query_tables(input_text):
+    vector_store = create_vector_store()
+    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 2})
+    
+    # Retrieve relevant documents based on the input text
+    retrieved_docs = retriever.invoke(input_text)
+    
+    # Combine the content of the retrieved documents
+    context = "\n".join([doc.page_content for doc in retrieved_docs])
+    #Return the context
+    
+    return  context
+
+def build_few_shot_prompt(text_input):
+    few_shots = load_few_shots()
+    context=query_tables("text_input")
+    
+    prompt = f"""
+    database context:
+    {context}
+    
+
+    {few_shots}
+
+    """
+    return prompt
 
 
-
-
-main()
 
 
